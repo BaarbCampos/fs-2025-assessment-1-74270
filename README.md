@@ -9,7 +9,7 @@ Open the solution in Visual Studio 2022 and run the project.
 Swagger will open automatically.
 
 Example:
-[https://localhost:xxxx/swagger](https://localhost:7124/swagger/index.html)
+https://localhost:7124/swagger/index.html
 
 Main endpoints
 
