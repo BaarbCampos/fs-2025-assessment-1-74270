@@ -1,6 +1,17 @@
-@fs_2025_assessment_1_74270_HostAddress = http://localhost:5048
+@fs_2025_assessment_1_74270_HostAddress = https://localhost:7124
 
-GET {{fs_2025_assessment_1_74270_HostAddress}}/weatherforecast/
+### V1 - Get all stations
+GET {{fs_2025_assessment_1_74270_HostAddress}}/api/v1/stations
 Accept: application/json
 
-###
+### V1 - Get station by number
+GET {{fs_2025_assessment_1_74270_HostAddress}}/api/v1/stations/1
+Accept: application/json
+
+### V2 - Get all stations from Cosmos
+GET {{fs_2025_assessment_1_74270_HostAddress}}/api/v2/stations
+Accept: application/json
+
+### V2 - Get station 1 from Cosmos
+GET {{fs_2025_assessment_1_74270_HostAddress}}/api/v2/stations/1
+Accept: application/json
