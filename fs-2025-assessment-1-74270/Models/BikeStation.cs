@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 
 namespace fs_2025_assessment_1_74270.Models
@@ -12,11 +12,13 @@ namespace fs_2025_assessment_1_74270.Models
         // id usado no Cosmos (string)
         public string id => number.ToString();
 
-        public string contract_name { get; set; }
-        public string name { get; set; }
-        public string address { get; set; }
+        // 🔹 Todas as strings ficaram opcionais (nullable)
+        public string? contract_name { get; set; }
+        public string? name { get; set; }
+        public string? address { get; set; }
 
-        public Position position { get; set; }
+        // 🔹 Position também ficou opcional
+        public Position? position { get; set; }
 
         public bool banking { get; set; }
         public bool bonus { get; set; }
@@ -25,7 +27,7 @@ namespace fs_2025_assessment_1_74270.Models
         public int available_bike_stands { get; set; }
         public int available_bikes { get; set; }
 
-        public string status { get; set; }
+        public string? status { get; set; }
         public long last_update { get; set; }
     }
 
@@ -100,9 +102,7 @@ namespace fs_2025_assessment_1_74270.Models
             existing.status = updated.status;
             existing.last_update = updated.last_update;
 
-            // ⚠ NÃO grava mais no ficheiro para evitar conflito com o background service
-            // SaveChanges();
-
+            // (se quiser, pode chamar SaveChanges aqui também)
             return true;
         }
 
@@ -113,7 +113,7 @@ namespace fs_2025_assessment_1_74270.Models
             if (existing == null) return false;
 
             _stations.Remove(existing);
-            SaveChanges(); // se quiser, pode comentar também se não precisar persistir deletar
+            SaveChanges();
             return true;
         }
 
