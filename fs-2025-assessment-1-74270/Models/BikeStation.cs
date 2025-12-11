@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 
 namespace fs_2025_assessment_1_74270.Models
