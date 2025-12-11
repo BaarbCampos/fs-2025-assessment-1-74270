@@ -2023,5 +2023,20 @@
     "available_bikes": 1,
     "status": null,
     "last_update": 0
+  },
+  {
+    "number": 2,
+    "id": "2",
+    "contract_name": null,
+    "name": "test",
+    "address": "test",
+    "position": null,
+    "banking": false,
+    "bonus": false,
+    "bike_stands": 0,
+    "available_bike_stands": 1,
+    "available_bikes": 2,
+    "status": null,
+    "last_update": 0
   }
 ]
