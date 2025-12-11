@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using fs_2025_assessment_1_74270.Models;
 using fs_2025_assessment_1_74270.Data;
+using fs_2025_assessment_1_74270.Models;
 
 namespace fs_2025_assessment_1_74270.Controllers.V2
 {
@@ -18,7 +18,9 @@ namespace fs_2025_assessment_1_74270.Controllers.V2
             _cosmos = cosmos;
         }
 
+        // ================================================================
         // GET: /api/v2/stations
+        // ================================================================
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetAll(
             [FromQuery] string? status,
@@ -31,12 +33,9 @@ namespace fs_2025_assessment_1_74270.Controllers.V2
         {
             var stations = await _cosmos.GetAllAsync();
 
-            // Trabalhamos sempre com IEnumerable (LINQ em memória)
             IEnumerable<BikeStation> query = stations;
 
-            // -------- filtros --------
-
-            // status (OPEN/CLOSED)
+            // ----- filtro status -----
             if (!string.IsNullOrWhiteSpace(status))
             {
                 var s = status.ToUpperInvariant();
@@ -44,13 +43,13 @@ namespace fs_2025_assessment_1_74270.Controllers.V2
                                          x.status.ToUpper() == s);
             }
 
-            // minBikes
+            // ----- filtro min bikes -----
             if (minBikes.HasValue)
             {
                 query = query.Where(x => x.available_bikes >= minBikes.Value);
             }
 
-            // busca por nome / endereço
+            // ----- texto (nome / address) -----
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var term = q.ToLower();
@@ -59,36 +58,32 @@ namespace fs_2025_assessment_1_74270.Controllers.V2
                     (x.address != null && x.address.ToLower().Contains(term)));
             }
 
-            // -------- ordenação --------
+            // ----- ordenação -----
             bool desc = string.Equals(dir, "desc", System.StringComparison.OrdinalIgnoreCase);
 
             switch (sort?.ToLower())
             {
                 case "name":
-                    query = desc
-                        ? query.OrderByDescending(x => x.name)
-                        : query.OrderBy(x => x.name);
+                    query = desc ? query.OrderByDescending(x => x.name)
+                                 : query.OrderBy(x => x.name);
                     break;
 
                 case "availablebikes":
-                    query = desc
-                        ? query.OrderByDescending(x => x.available_bikes)
-                        : query.OrderBy(x => x.available_bikes);
+                    query = desc ? query.OrderByDescending(x => x.available_bikes)
+                                 : query.OrderBy(x => x.available_bikes);
                     break;
 
                 case "occupancy":
-                    query = desc
-                        ? query.OrderByDescending(Occupancy)
-                        : query.OrderBy(Occupancy);
+                    query = desc ? query.OrderByDescending(Occupancy)
+                                 : query.OrderBy(Occupancy);
                     break;
 
                 default:
-                    // padrão: ordena por número
                     query = query.OrderBy(x => x.number);
                     break;
             }
 
-            // -------- paginação --------
+            // ----- paginação -----
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 10;
 
@@ -96,7 +91,6 @@ namespace fs_2025_assessment_1_74270.Controllers.V2
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize);
 
-            // Projeção simples (pode ser DTO depois)
             var result = paged.Select(station => new
             {
                 station.number,
@@ -111,7 +105,9 @@ namespace fs_2025_assessment_1_74270.Controllers.V2
             return Ok(result);
         }
 
+        // ================================================================
         // GET: /api/v2/stations/{number}
+        // ================================================================
         [HttpGet("{number:int}")]
         public async Task<ActionResult<object>> GetByNumber(int number)
         {
@@ -132,6 +128,52 @@ namespace fs_2025_assessment_1_74270.Controllers.V2
             };
 
             return Ok(result);
+        }
+
+        // ================================================================
+        // POST: /api/v2/stations
+        // ================================================================
+        [HttpPost]
+        public async Task<ActionResult<BikeStation>> Create([FromBody] BikeStation station)
+        {
+            if (station == null)
+                return BadRequest();
+
+            var created = await _cosmos.AddAsync(station);
+
+            return CreatedAtAction(nameof(GetByNumber),
+                new { number = created.number }, created);
+        }
+
+        // ================================================================
+        // PUT: /api/v2/stations/{number}
+        // ================================================================
+        [HttpPut("{number:int}")]
+        public async Task<IActionResult> Update(int number, [FromBody] BikeStation station)
+        {
+            if (station == null)
+                return BadRequest();
+
+            var ok = await _cosmos.UpdateAsync(number, station);
+
+            if (!ok)
+                return NotFound();
+
+            return NoContent();
+        }
+
+        // ================================================================
+        // DELETE: /api/v2/stations/{number}
+        // ================================================================
+        [HttpDelete("{number:int}")]
+        public async Task<IActionResult> Delete(int number)
+        {
+            var ok = await _cosmos.DeleteAsync(number);
+
+            if (!ok)
+                return NotFound();
+
+            return NoContent();
         }
 
         // Função auxiliar: ocupação

@@ -1,33 +1,29 @@
-﻿using Microsoft.Azure.Cosmos;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Configuration;
 using fs_2025_assessment_1_74270.Models;
 
 namespace fs_2025_assessment_1_74270.Data
 {
     public class CosmosBikeRepository
     {
-        private readonly CosmosClient _client;
         private readonly Container _container;
-        private readonly string _databaseName;
-        private readonly string _containerName;
 
-        public CosmosBikeRepository(IConfiguration configuration)
+        public CosmosBikeRepository(CosmosClient client, IConfiguration config)
         {
-            var endpoint = configuration["CosmosDb:AccountEndpoint"];
-            var key = configuration["CosmosDb:AccountKey"];
+            // Usa a secção "CosmosDb" do appsettings.json
+            var dbName = config["CosmosDb:DatabaseName"];
+            var containerName = config["CosmosDb:ContainerName"];
 
-            _databaseName = configuration["CosmosDb:DatabaseName"];
-            _containerName = configuration["CosmosDb:ContainerName"];
-
-            // Criar o client usando endpoint + key
-            _client = new CosmosClient(endpoint, key, new CosmosClientOptions
-            {
-                ConnectionMode = ConnectionMode.Direct
-            });
-
-            _container = _client.GetContainer(_databaseName, _containerName);
+            _container = client.GetContainer(dbName, containerName);
         }
 
-        // -------- GET ALL (usado pelo V2) --------
+        // ================================================================
+        // GET ALL
+        // ================================================================
         public async Task<List<BikeStation>> GetAllAsync()
         {
             var query = _container.GetItemQueryIterator<BikeStation>(
@@ -38,27 +34,69 @@ namespace fs_2025_assessment_1_74270.Data
             while (query.HasMoreResults)
             {
                 var response = await query.ReadNextAsync();
-                results.AddRange(response);
+                results.AddRange(response.ToList());
             }
 
             return results;
         }
 
-        // -------- GET BY NUMBER --------
+        // ================================================================
+        // GET ONE
+        // ================================================================
         public async Task<BikeStation?> GetByNumberAsync(int number)
         {
-            var query = _container.GetItemQueryIterator<BikeStation>(
-                new QueryDefinition("SELECT * FROM c WHERE c.number = @number")
-                    .WithParameter("@number", number));
+            var sql = "SELECT * FROM c WHERE c.number = @n";
 
-            while (query.HasMoreResults)
-            {
-                var response = await query.ReadNextAsync();
-                var item = response.FirstOrDefault();
-                if (item != null) return item;
-            }
+            var iterator = _container.GetItemQueryIterator<BikeStation>(
+                new QueryDefinition(sql).WithParameter("@n", number));
 
-            return null;
+            if (!iterator.HasMoreResults) return null;
+
+            var page = await iterator.ReadNextAsync();
+            return page.FirstOrDefault();
+        }
+
+        // ================================================================
+        // CREATE
+        // ================================================================
+        public async Task<BikeStation> AddAsync(BikeStation station)
+        {
+            // se não vier contract_name, usa "dublin"
+            var pk = new PartitionKey(station.contract_name ?? "dublin");
+
+            var response = await _container.CreateItemAsync(station, pk);
+            return response.Resource;
+        }
+
+        // ================================================================
+        // UPDATE
+        // ================================================================
+        public async Task<bool> UpdateAsync(int number, BikeStation station)
+        {
+            station.number = number;
+
+            var pk = new PartitionKey(station.contract_name ?? "dublin");
+
+            var response = await _container.UpsertItemAsync(station, pk);
+
+            return response.StatusCode == HttpStatusCode.OK ||
+                   response.StatusCode == HttpStatusCode.Created;
+        }
+
+        // ================================================================
+        // DELETE
+        // ================================================================
+        public async Task<bool> DeleteAsync(int number)
+        {
+            var existing = await GetByNumberAsync(number);
+            if (existing == null) return false;
+
+            var pk = new PartitionKey(existing.contract_name ?? "dublin");
+
+            var response = await _container.DeleteItemAsync<BikeStation>(existing.id, pk);
+
+            return response.StatusCode == HttpStatusCode.NoContent ||
+                   response.StatusCode == HttpStatusCode.OK;
         }
     }
 }

@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fs-2025-assessment-1-74270"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fs-2025-assessment-1-74270.Tests", "fs-2025-assessment-1-74270.Tests\fs-2025-assessment-1-74270.Tests.csproj", "{63F5F0C3-7A35-4D1C-AF21-09BEFB970A43}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "fs-2025-assessment-1-74270.BlazorClient", "fs-2025-assessment-1-74270.BlazorClient\fs-2025-assessment-1-74270.BlazorClient.csproj", "{B30869F3-73E4-40A4-B5BF-93C03CCCFCC6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{63F5F0C3-7A35-4D1C-AF21-09BEFB970A43}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{63F5F0C3-7A35-4D1C-AF21-09BEFB970A43}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{63F5F0C3-7A35-4D1C-AF21-09BEFB970A43}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B30869F3-73E4-40A4-B5BF-93C03CCCFCC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B30869F3-73E4-40A4-B5BF-93C03CCCFCC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B30869F3-73E4-40A4-B5BF-93C03CCCFCC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B30869F3-73E4-40A4-B5BF-93C03CCCFCC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

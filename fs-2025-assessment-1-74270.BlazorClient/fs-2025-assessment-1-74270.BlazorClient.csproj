@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+	  <TargetFramework>net8.0</TargetFramework>
+	  <RootNamespace>fs_2025_assessment_1_74270.BlazorClient</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\fs-2025-assessment-1-74270\fs-2025-assessment-1-74270.csproj" />
+  </ItemGroup>
+
+</Project>
