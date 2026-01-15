@@ -42,7 +42,7 @@ jobs:
       
       - name: Test (xUnit) and collect coverage
         run: >
-          dotnet test ${{ env.TEST_PROJECT }} --no-restore
+          dotnet test ${{ env.TEST_PROJECT }} -c Release 
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
 
