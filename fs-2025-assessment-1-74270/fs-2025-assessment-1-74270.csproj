@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>fs_2025_assessment_1_74270</RootNamespace>
+	  <PreserveCompilationContext>true </PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
