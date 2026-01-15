@@ -18,6 +18,7 @@ permissions:
 env:
   DOTNET_VERSION: "8.0.x"
   TEST_PROJECT: "fs-2025-assessment-1-74270.Tests/fs-2025-assessment-1-74270.Tests.csproj"
+  APP_PROJECT: "fs-2025-assessment-1-74270/fs-2025-assessment-1-74270.csproj"
 
 jobs:
   build-and-test:
@@ -34,16 +35,22 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      # (Opcional) build em Release só pra garantir que compila
-      - name: Build (Release)
-        run: dotnet build --no-restore -c Release
+      # Build do APP em Release (garante que o backend compila)
+      - name: Build App (Release)
+        run: dotnet build ${{ env.APP_PROJECT }} -c Release --no-restore
 
-
+      
       - name: Test (xUnit) and collect coverage
         run: >
-          dotnet test $TEST_PROJECT --no-restore
+          dotnet test ${{ env.TEST_PROJECT }} --no-restore
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
+
+
+      - name: List test output
+        run: |
+          ls -la fs-2025-assessment-1-74270.Tests/bin/Debug/net8.0 || true
+          ls -la fs-2025-assessment-1-74270/bin/Release/net8.0 || true
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
