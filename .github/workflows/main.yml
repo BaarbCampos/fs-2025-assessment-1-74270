@@ -35,14 +35,49 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      # Build do app (Release) só para garantir que compila
-      - name: Build App (Release)
-        run: dotnet build ${{ env.APP_PROJECT }} -c Release --no-restore
+      # ✅ Build do APP em Debug (gera fs-2025-assessment-1-74270.deps.json)
+      - name: Build App (Debug)
+        run: dotnet build ${{ env.APP_PROJECT }} -c Debug --no-restore
 
-      # ✅ IMPORTANTE: Testes em DEBUG (sem -c Release) para evitar o erro do testhost.deps.json
+      # ✅ Build do TESTE em Debug (cria a pasta bin/Debug/net8.0)
+      - name: Build Tests (Debug)
+        run: dotnet build ${{ env.TEST_PROJECT }} -c Debug --no-restore
+
+      # ✅ FIX: criar o arquivo que o WebApplicationFactory procura
+      - name: Fix WebApplicationFactory deps (copy to testhost.deps.json)
+        run: |
+          APP_OUT="fs-2025-assessment-1-74270/bin/Debug/net8.0"
+          TEST_OUT="fs-2025-assessment-1-74270.Tests/bin/Debug/net8.0"
+
+          echo "APP_OUT=$APP_OUT"
+          echo "TEST_OUT=$TEST_OUT"
+
+          echo "Listing APP_OUT:"
+          ls -la "$APP_OUT"
+
+          echo "Listing TEST_OUT before copy:"
+          ls -la "$TEST_OUT"
+
+          # Preferir o deps do APP (mais comum existir)
+          if [ -f "$APP_OUT/fs-2025-assessment-1-74270.deps.json" ]; then
+            cp "$APP_OUT/fs-2025-assessment-1-74270.deps.json" "$TEST_OUT/testhost.deps.json"
+            echo "Copied APP deps -> testhost.deps.json"
+          # Fallback: se existir deps do próprio projeto de teste, usa ele
+          elif [ -f "$TEST_OUT/fs-2025-assessment-1-74270.Tests.deps.json" ]; then
+            cp "$TEST_OUT/fs-2025-assessment-1-74270.Tests.deps.json" "$TEST_OUT/testhost.deps.json"
+            echo "Copied TEST deps -> testhost.deps.json"
+          else
+            echo "ERROR: Could not find any .deps.json to copy."
+            exit 1
+          fi
+
+          echo "Listing TEST_OUT after copy:"
+          ls -la "$TEST_OUT"
+
+      # ✅ Agora roda os testes (Debug)
       - name: Test (xUnit) and collect coverage
         run: >
-          dotnet test ${{ env.TEST_PROJECT }} --no-restore
+          dotnet test ${{ env.TEST_PROJECT }} -c Debug --no-build
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
 
