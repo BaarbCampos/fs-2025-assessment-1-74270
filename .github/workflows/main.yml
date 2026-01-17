@@ -35,15 +35,13 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      # ✅ Build do APP em Debug (gera fs-2025-assessment-1-74270.deps.json)
       - name: Build App (Debug)
         run: dotnet build ${{ env.APP_PROJECT }} -c Debug --no-restore
 
-      # ✅ Build do TESTE em Debug (cria a pasta bin/Debug/net8.0)
       - name: Build Tests (Debug)
         run: dotnet build ${{ env.TEST_PROJECT }} -c Debug --no-restore
 
-      # ✅ FIX: criar o arquivo que o WebApplicationFactory procura
+      # Cria o arquivo que o WebApplicationFactory procura
       - name: Fix WebApplicationFactory deps (copy to testhost.deps.json)
         run: |
           APP_OUT="fs-2025-assessment-1-74270/bin/Debug/net8.0"
@@ -58,11 +56,9 @@ jobs:
           echo "Listing TEST_OUT before copy:"
           ls -la "$TEST_OUT"
 
-          # Preferir o deps do APP (mais comum existir)
           if [ -f "$APP_OUT/fs-2025-assessment-1-74270.deps.json" ]; then
             cp "$APP_OUT/fs-2025-assessment-1-74270.deps.json" "$TEST_OUT/testhost.deps.json"
             echo "Copied APP deps -> testhost.deps.json"
-          # Fallback: se existir deps do próprio projeto de teste, usa ele
           elif [ -f "$TEST_OUT/fs-2025-assessment-1-74270.Tests.deps.json" ]; then
             cp "$TEST_OUT/fs-2025-assessment-1-74270.Tests.deps.json" "$TEST_OUT/testhost.deps.json"
             echo "Copied TEST deps -> testhost.deps.json"
@@ -74,12 +70,14 @@ jobs:
           echo "Listing TEST_OUT after copy:"
           ls -la "$TEST_OUT"
 
-      # ✅ Agora roda os testes (Debug)
+      # ✅ Teste sem --no-build (evita o erro do --parentprocessid)
       - name: Test (xUnit) and collect coverage
         run: >
-          dotnet test ${{ env.TEST_PROJECT }} -c Debug --no-build
+          dotnet test ${{ env.TEST_PROJECT }} -c Debug
+          --framework net8.0
           --collect:"XPlat Code Coverage"
           --logger "trx;LogFileName=test-results.trx"
+          -- RunConfiguration.TargetPlatform=x64
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
