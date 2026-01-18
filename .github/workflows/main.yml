@@ -1,14 +1,10 @@
 name: Test & Publish Coverage (xUnit + ReportGenerator)
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ main, master ]
+    branches: [ master ]
   pull_request:
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,8 +13,6 @@ permissions:
 
 env:
   DOTNET_VERSION: "8.0.x"
-  TEST_PROJECT: "fs-2025-assessment-1-74270.Tests/fs-2025-assessment-1-74270.Tests.csproj"
-  APP_PROJECT: "fs-2025-assessment-1-74270/fs-2025-assessment-1-74270.csproj"
 
 jobs:
   build-and-test:
@@ -35,54 +29,16 @@ jobs:
       - name: Restore
         run: dotnet restore
 
-      - name: Build App (Debug)
-        run: dotnet build ${{ env.APP_PROJECT }} -c Debug --no-restore
+      - name: Build solution (Debug)
+        run: dotnet build --configuration Debug --no-restore
 
-      - name: Build Tests (Debug)
-        run: dotnet build ${{ env.TEST_PROJECT }} -c Debug --no-restore
-
-      # Cria o arquivo que o WebApplicationFactory procura
-      - name: Fix WebApplicationFactory deps (copy to testhost.deps.json)
-        run: |
-          APP_OUT="fs-2025-assessment-1-74270/bin/Debug/net8.0"
-          TEST_OUT="fs-2025-assessment-1-74270.Tests/bin/Debug/net8.0"
-
-          echo "APP_OUT=$APP_OUT"
-          echo "TEST_OUT=$TEST_OUT"
-
-          echo "Listing APP_OUT:"
-          ls -la "$APP_OUT"
-
-          echo "Listing TEST_OUT before copy:"
-          ls -la "$TEST_OUT"
-
-          if [ -f "$APP_OUT/fs-2025-assessment-1-74270.deps.json" ]; then
-            cp "$APP_OUT/fs-2025-assessment-1-74270.deps.json" "$TEST_OUT/testhost.deps.json"
-            echo "Copied APP deps -> testhost.deps.json"
-          elif [ -f "$TEST_OUT/fs-2025-assessment-1-74270.Tests.deps.json" ]; then
-            cp "$TEST_OUT/fs-2025-assessment-1-74270.Tests.deps.json" "$TEST_OUT/testhost.deps.json"
-            echo "Copied TEST deps -> testhost.deps.json"
-          else
-            echo "ERROR: Could not find any .deps.json to copy."
-            exit 1
-          fi
-
-          echo "Listing TEST_OUT after copy:"
-          ls -la "$TEST_OUT"
-
-      # ✅ Teste sem --no-build (evita o erro do --parentprocessid)
-      - name: Test (xUnit) and collect coverage
-        run: >
-          dotnet test ${{ env.TEST_PROJECT }} -c Debug
-          --framework net8.0
-          --collect:"XPlat Code Coverage"
-          --logger "trx;LogFileName=test-results.trx"
-          -- RunConfiguration.TargetPlatform=x64
+      - name: Test and collect coverage
+        run: dotnet test --configuration Debug --no-build --collect:"XPlat Code Coverage"
 
       - name: Install ReportGenerator
         run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-      - name: Generate HTML coverage report
+      - name: Generate coverage report
         run: |
           export PATH="$PATH:~/.dotnet/tools"
           reportgenerator \
@@ -90,26 +46,23 @@ jobs:
             -targetdir:coveragereport \
             -reporttypes:Html
 
-      - name: Upload coverage as build artifact
+      - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-html
+          name: coverage
           path: coveragereport
 
       - name: Upload Pages artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./coveragereport
+          path: coveragereport
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     needs: build-and-test
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v4
