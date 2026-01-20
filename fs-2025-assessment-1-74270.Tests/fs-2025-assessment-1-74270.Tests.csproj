@@ -1,36 +1,53 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>fs_2025_assessment_1_74270.Tests</RootNamespace>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RootNamespace>fs_2025_assessment_1_74270.Tests</RootNamespace>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-  </PropertyGroup>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
 
-  <ItemGroup>
-    <Content Include="Data\dublinbike.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-  </ItemGroup>
+		<!-- força x64 -->
+		<PlatformTarget>x64</PlatformTarget>
+		<Prefer32Bit>false</Prefer32Bit>
 
-  <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.5.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
-  </ItemGroup>
+		<!-- garante que o output vai para win-x64 (onde seus comandos estavam rodando) -->
+		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\fs-2025-assessment-1-74270\fs-2025-assessment-1-74270.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="Data\dublinbike.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+		<PackageReference Include="xunit" Version="2.6.3" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" />
+		<PackageReference Include="coverlet.collector" Version="6.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.10" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\fs-2025-assessment-1-74270\fs-2025-assessment-1-74270.csproj" />
+	</ItemGroup>
+
+	<!-- Copia o deps do APP para o output do TESTE (onde o WebApplicationFactory procura) -->
+	<Target Name="CopyDepsForFunctionalTests" AfterTargets="Build">
+		<PropertyGroup>
+			<AppDeps>$(MSBuildProjectDirectory)\..\fs-2025-assessment-1-74270\bin\x64\$(Configuration)\net8.0\win-x64\fs-2025-assessment-1-74270.deps.json</AppDeps>
+		</PropertyGroup>
+
+		<Message Text="Copying deps from: $(AppDeps) -> $(TargetDir)testhost.deps.json" Importance="high" />
+
+		<Copy
+		  SourceFiles="$(AppDeps)"
+		  DestinationFiles="$(TargetDir)testhost.deps.json"
+		  SkipUnchangedFiles="true" />
+	</Target>
 
 </Project>

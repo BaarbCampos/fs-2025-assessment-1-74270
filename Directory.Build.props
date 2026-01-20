@@ -1,0 +1,13 @@
+<Project>
+  <PropertyGroup>
+    <!-- Força tudo a rodar em x64 -->
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+
+    <!-- Evita o uso de apphost que cai em testhost.x86 -->
+    <UseAppHost>false</UseAppHost>
+
+    <!-- Necessário para WebApplicationFactory -->
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+</Project>
